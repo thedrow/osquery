@@ -14,6 +14,7 @@
 
 #include <osquery/logger.h>
 #include <osquery/tables.h>
+#include <boost/format.hpp>
 
 namespace osquery {
 
@@ -105,11 +106,13 @@ void matchAugeasPattern(augeas* aug,
                         bool use_path = false) {
   // The caller may supply an Augeas PATH/NODE expression or filesystem path.
   // Below we formulate a Augeas pattern from a path if needed.
+  aug_defvar(aug, "osquery_iterator",(use_path ? ("/files/" + pattern + "|/files" + pattern + "//*").c_str()
+                : pattern.c_str()));
+  boost::format fmter("$osquery_iterator[%1%]");
   char** matches = nullptr;
   int len = aug_match(
       aug,
-      (use_path ? ("/files/" + pattern + "|/files" + pattern + "//*").c_str()
-                : pattern.c_str()),
+      "$osquery_iterator",
       &matches);
 
   // Handle matching errors.
@@ -130,9 +133,11 @@ void matchAugeasPattern(augeas* aug,
     std::string node(matches[i]);
     free(matches[i]);
 
+    std::string iter = (fmter % i).str();
+
     Row r;
     const char* value = nullptr;
-    int result = aug_get(aug, node.c_str(), &value);
+    int result = aug_get(aug, iter.c_str(), &value);
     if (result == 1) {
       r["node"] = node;
 
@@ -141,12 +146,12 @@ void matchAugeasPattern(augeas* aug,
       }
 
       if (!use_path) {
-        r["path"] = getSpanInfo(aug, node, context);
+        r["path"] = getSpanInfo(aug, iter.c_str(), context);
       } else {
         r["path"] = pattern;
       }
 
-      r["label"] = getLabelInfo(aug, node, context);
+      r["label"] = getLabelInfo(aug, iter.c_str(), context);
 
       results.push_back(r);
     } else if (result < 1) {
