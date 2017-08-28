@@ -16,18 +16,18 @@ namespace osquery {
 DECLARE_string(database_path);
 
 class EphemeralDatabasePlugin : public DatabasePlugin {
-  using DBType = std::map<std::string, std::map<std::string, std::string>>;
+  using DBType = std::map<std::string, std::map<std::string, RowData>>;
 
  public:
   /// Data retrieval method.
   Status get(const std::string& domain,
              const std::string& key,
-             std::string& value) const override;
+             RowData& value) const override;
 
   /// Data storage method.
   Status put(const std::string& domain,
              const std::string& key,
-             const std::string& value) override;
+             const RowData& value) override;
 
   /// Data removal method.
   Status remove(const std::string& domain, const std::string& k) override;
@@ -58,7 +58,7 @@ REGISTER_INTERNAL(EphemeralDatabasePlugin, "database", "ephemeral");
 
 Status EphemeralDatabasePlugin::get(const std::string& domain,
                                     const std::string& key,
-                                    std::string& value) const {
+                                    RowData& value) const {
   if (db_.count(domain) > 0 && db_.at(domain).count(key) > 0) {
     value = db_.at(domain).at(key);
     return Status(0);
@@ -69,7 +69,7 @@ Status EphemeralDatabasePlugin::get(const std::string& domain,
 
 Status EphemeralDatabasePlugin::put(const std::string& domain,
                                     const std::string& key,
-                                    const std::string& value) {
+                                    const RowData& value) {
   db_[domain][key] = value;
   return Status(0);
 }

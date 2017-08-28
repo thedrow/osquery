@@ -16,6 +16,7 @@
 
 #include <osquery/registry.h>
 #include <osquery/status.h>
+#include <osquery/query.h>
 
 namespace osquery {
 
@@ -89,7 +90,7 @@ class DatabasePlugin : public Plugin {
    */
   virtual Status get(const std::string& domain,
                      const std::string& key,
-                     std::string& value) const = 0;
+                     RowData& value) const = 0;
 
   /**
    * @brief Store a string-represented value using a domain and key index.
@@ -104,7 +105,7 @@ class DatabasePlugin : public Plugin {
    */
   virtual Status put(const std::string& domain,
                      const std::string& key,
-                     const std::string& value) = 0;
+                     const RowData& value) = 0;
 
   /// Data removal method.
   virtual Status remove(const std::string& domain, const std::string& k) = 0;

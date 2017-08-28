@@ -123,9 +123,10 @@ Status DatabasePlugin::call(const PluginRequest& request,
   // Switch over the possible database plugin actions.
   ReadLock lock(kDatabaseReset);
   if (request.at("action") == "get") {
-    std::string value;
+    RowData value;
     auto status = this->get(domain, key, value);
-    response.push_back({{"v", value}});
+    // TODO: Don't assume this is a std::string
+    response.push_back({{"v", boost::get<std::string>(value)}});
     return status;
   } else if (request.at("action") == "put") {
     if (request.count("value") == 0) {
@@ -170,7 +171,7 @@ static inline std::shared_ptr<DatabasePlugin> getDatabasePlugin() {
 
 Status getDatabaseValue(const std::string& domain,
                         const std::string& key,
-                        std::string& value) {
+                        RowData& value) {
   if (domain.empty()) {
     return Status(1, "Missing domain");
   }
@@ -202,7 +203,7 @@ Status getDatabaseValue(const std::string& domain,
 
 Status setDatabaseValue(const std::string& domain,
                         const std::string& key,
-                        const std::string& value) {
+                        const RowData& value) {
   if (domain.empty()) {
     return Status(1, "Missing domain");
   }
@@ -210,8 +211,9 @@ Status setDatabaseValue(const std::string& domain,
   if (RegistryFactory::get().external()) {
     // External registries (extensions) do not have databases active.
     // It is not possible to use an extension-based database.
+    // TODO: Don't assume this is a std::string
     PluginRequest request = {
-        {"action", "put"}, {"domain", domain}, {"key", key}, {"value", value}};
+        {"action", "put"}, {"domain", domain}, {"key", key}, {"value", boost::get<std::string>(value)}};
     return Registry::call("database", request);
   }
 

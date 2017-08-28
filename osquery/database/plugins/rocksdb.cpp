@@ -44,12 +44,12 @@ class RocksDBDatabasePlugin : public DatabasePlugin {
   /// Data retrieval method.
   Status get(const std::string& domain,
              const std::string& key,
-             std::string& value) const override;
+             RowData& value) const override;
 
   /// Data storage method.
   Status put(const std::string& domain,
              const std::string& key,
-             const std::string& value) override;
+             const RowData& value) override;
 
   /// Data removal method.
   Status remove(const std::string& domain, const std::string& k) override;
@@ -300,7 +300,7 @@ rocksdb::ColumnFamilyHandle* RocksDBDatabasePlugin::getHandleForColumnFamily(
 
 Status RocksDBDatabasePlugin::get(const std::string& domain,
                                   const std::string& key,
-                                  std::string& value) const {
+                                  RowData& value) const {
   if (getDB() == nullptr) {
     return Status(1, "Database not opened");
   }
@@ -314,7 +314,7 @@ Status RocksDBDatabasePlugin::get(const std::string& domain,
 
 Status RocksDBDatabasePlugin::put(const std::string& domain,
                                   const std::string& key,
-                                  const std::string& value) {
+                                  const RowData& value) {
   if (read_only_) {
     return Status(0, "Database in readonly mode");
   }

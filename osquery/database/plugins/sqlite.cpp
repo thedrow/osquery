@@ -39,12 +39,12 @@ class SQLiteDatabasePlugin : public DatabasePlugin {
   /// Data retrieval method.
   Status get(const std::string& domain,
              const std::string& key,
-             std::string& value) const override;
+             RowData& value) const override;
 
   /// Data storage method.
   Status put(const std::string& domain,
              const std::string& key,
-             const std::string& value) override;
+             const RowData& value) override;
 
   /// Data removal method.
   Status remove(const std::string& domain, const std::string& k) override;
@@ -181,7 +181,7 @@ static int getData(void* argument, int argc, char* argv[], char* column[]) {
 
 Status SQLiteDatabasePlugin::get(const std::string& domain,
                                  const std::string& key,
-                                 std::string& value) const {
+                                 RowData& value) const {
   QueryData results;
   char* err = nullptr;
   std::string q = "select value from " + domain + " where key = '" + key + "';";
@@ -215,7 +215,7 @@ static void tryVacuum(sqlite3* db) {
 
 Status SQLiteDatabasePlugin::put(const std::string& domain,
                                  const std::string& key,
-                                 const std::string& value) {
+                                 const RowData& value) {
   if (read_only_) {
     return Status(0, "Database in readonly mode");
   }
