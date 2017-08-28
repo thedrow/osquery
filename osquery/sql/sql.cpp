@@ -10,6 +10,8 @@
 
 #include <sstream>
 
+#include <boost/variant/static_visitor.hpp>
+
 #include <osquery/core.h>
 #include <osquery/logger.h>
 #include <osquery/registry.h>
@@ -90,7 +92,10 @@ void escapeNonPrintableBytesEx(std::string& data) {
 void SQL::escapeResults() {
   for (auto& row : results_) {
     for (auto& column : row) {
-      escapeNonPrintableBytes(column.second);
+      // TODO: Figure out how to make this a visitor that ignores all non-string types
+      // TODO: Very unfortunate that we have to mutate a const char * or boost::string_view. Only replace with a std::string if anything was replaced
+      // TODO: Don't assume this is a std::string
+      escapeNonPrintableBytes(boost::get<std::string>(column.second));
     }
   }
 }
