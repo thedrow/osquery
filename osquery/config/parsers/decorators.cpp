@@ -35,7 +35,7 @@ const std::map<DecorationPoint, std::string> kDecorationPointKeys = {
     {DECORATE_INTERVAL, "interval"},
 };
 
-using KeyValueMap = std::map<std::string, std::string>;
+using KeyValueMap = std::map<std::string, RowData>;
 using DecorationStore = std::map<std::string, KeyValueMap>;
 
 namespace {
@@ -197,7 +197,7 @@ void DecoratorsConfigParserPlugin::updateDecorations(
 
 inline void addDecoration(const std::string& source,
                           const std::string& name,
-                          const std::string& value) {
+                          const RowData& value) {
   WriteLock lock(DecoratorsConfigParserPlugin::kDecorationsMutex);
   DecoratorsConfigParserPlugin::kDecorations[source][name] = value;
 }
@@ -268,7 +268,7 @@ void runDecorators(DecorationPoint point,
   }
 }
 
-void getDecorations(std::map<std::string, std::string>& results) {
+void getDecorations(std::map<std::string, RowData>& results) {
   if (FLAGS_disable_decorators) {
     return;
   }
