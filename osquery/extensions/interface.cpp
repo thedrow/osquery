@@ -17,6 +17,7 @@
 #include <osquery/filesystem.h>
 #include <osquery/logger.h>
 #include <osquery/system.h>
+#include <osquery/query.h>
 
 #include "osquery/extensions/interface.h"
 
@@ -188,7 +189,7 @@ void ExtensionManagerHandler::query(ExtensionResponse& _return,
 
   if (status.ok()) {
     for (const auto& row : results) {
-      _return.response.push_back(row);
+      _return.response.push_back(rowToSerializedRow(row));
     }
   }
 }

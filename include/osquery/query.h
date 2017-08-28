@@ -41,6 +41,14 @@ using RowData = boost::variant<std::string, boost::string_view, long long, unsig
 using Row = std::map<std::string, RowData>;
 
 /**
+ * @brief A serialized row from a database query
+ *
+ * SerializedRow is a simple map where individual column names are keys, which map to
+ * the SerializedRow's respective value represented as a string
+ */
+using SerializedRow = std::map<std::string, std::string>;
+
+/**
  * @brief A vector of column names associated with a query
  *
  * ColumnNames is a vector of the column names, in order, returned by a query.
@@ -98,6 +106,8 @@ Status deserializeRowJSONRJ(const std::string& json, Row& r);
  * osquery. It's just a vector of Row's.
  */
 using QueryData = std::vector<Row>;
+
+using SerializedQueryData = std::vector<SerializedRow>;
 
 /**
  * @brief Serialize a QueryData object into a property tree
@@ -171,6 +181,44 @@ struct DiffResults {
     return !(*this == comp);
   }
 };
+
+struct RowToSerializedRowVisitor : boost::static_visitor<std::string> {
+  template <typename T>
+  std::string operator()(const T& t) const {
+    return std::to_string(t);
+  }
+};
+
+template <>
+std::string RowToSerializedRowVisitor::operator()<std::string>(const std::string& s) const {
+  return s;
+}
+
+template <>
+std::string RowToSerializedRowVisitor::operator()<boost::string_view>(const boost::string_view& s) const {
+  // TODO: Don't copy. MOVE
+  return s.data();
+}
+
+// TODO: Rename this
+// TODO: Move implementation to cpp file
+SerializedRow rowToSerializedRow(const Row &row) {
+  SerializedRow serialized_row;
+  for (const auto& column : row) {
+    serialized_row.insert(std::pair<std::string, std::string>(column.first, boost::apply_visitor(RowToSerializedRowVisitor(), column.second)));
+  }
+
+  return serialized_row;
+}
+
+Row serializedRowToRow(const SerializedRow &serialized_row) {
+  Row row;
+  for (const auto& column : serialized_row) {
+    row[column.first] = column.second;
+  }
+
+  return row;
+}
 
 /**
  * @brief Serialize a DiffResults object into a property tree

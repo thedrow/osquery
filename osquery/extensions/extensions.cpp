@@ -21,6 +21,7 @@
 #include <osquery/logger.h>
 #include <osquery/registry.h>
 #include <osquery/system.h>
+#include <osquery/query.h>
 
 #include "osquery/core/conversions.h"
 #include "osquery/core/process.h"
@@ -482,7 +483,7 @@ Status queryExternal(const std::string& manager_path,
   }
 
   for (const auto& row : response.response) {
-    results.push_back(row);
+    results.push_back(serializedRowToRow(row));
   }
 
   return Status(response.status.code, response.status.message);
