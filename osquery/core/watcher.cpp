@@ -476,7 +476,8 @@ void WatcherRunner::createWorker() {
                          "pid",
                          EQUALS,
                          INTEGER(PlatformProcess::getCurrentProcess()->pid()));
-  if (qd.size() != 1 || qd[0].count("path") == 0 || qd[0]["path"].size() == 0) {
+  // TODO: Don't assume this is an std::string
+  if (qd.size() != 1 || qd[0].count("path") == 0 || boost::get<std::string>(qd[0]["path"]).size() == 0) {
     LOG(ERROR) << "osquery watcher cannot determine process path for worker";
     Initializer::requestShutdown(EXIT_FAILURE);
     return;
@@ -490,7 +491,8 @@ void WatcherRunner::createWorker() {
 
   // Get the complete path of the osquery process binary.
   boost::system::error_code ec;
-  auto exec_path = fs::system_complete(fs::path(qd[0]["path"]), ec);
+  // TODO: Don't assume this is an std::string
+  auto exec_path = fs::system_complete(fs::path(boost::get<std::string>(qd[0]["path"])), ec);
   if (!safePermissions(
           exec_path.parent_path().string(), exec_path.string(), true)) {
     // osqueryd binary has become unsafe.
