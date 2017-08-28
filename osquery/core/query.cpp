@@ -140,10 +140,21 @@ Status Query::addNewResults(const QueryData& current_qd,
   return Status(0, "OK");
 }
 
+struct RowToPtreeVisitor : boost::static_visitor<> {
+  pt::ptree& tree;
+  const std::string& key;
+
+  RowToPtreeVisitor(pt::ptree& _tree, const std::string& _key) : tree(_tree), key(_key) {}
+  template <typename T>
+  void operator()(const T& value) {
+    tree.put<T>(key, value);
+  }
+}
+
 Status serializeRow(const Row& r, pt::ptree& tree) {
   try {
     for (auto& i : r) {
-      tree.put<std::string>(i.first, i.second);
+      boost::apply_visitor(RowToPtreeVisitor(tree, i.first), i.second);
     }
   } catch (const std::exception& e) {
     return Status(1, e.what());
