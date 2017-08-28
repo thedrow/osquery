@@ -15,8 +15,12 @@
 #include <vector>
 
 #include <boost/property_tree/ptree.hpp>
+#include <boost/variant.hpp>
+#include <boost/variant/static_visitor.hpp>
+#include <boost/utility/string_view.hpp>
 
 #include <osquery/core.h>
+#include <osquery/core/conversions.h>
 #include <osquery/status.h>
 
 #include "osquery/core/json.h"
@@ -26,7 +30,7 @@ namespace osquery {
 /**
  * @brief A variant type for the SQLite type affinities.
  */
-using RowData = std::string;
+using RowData = boost::variant<std::string, boost::string_view, long long, unsigned long long, int, double>;
 
 /**
  * @brief A single row from a database query

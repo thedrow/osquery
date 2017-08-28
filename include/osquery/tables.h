@@ -635,7 +635,7 @@ struct QueryContext : private only_movable {
   }
 
   /// Helper to retrieve a keyed element within the query cache.
-  const std::string& getCache(const std::string& index,
+  const RowData& getCache(const std::string& index,
                               const std::string& key) {
     return table_->cache[index][key];
   }
@@ -648,7 +648,7 @@ struct QueryContext : private only_movable {
   /// Helper to set a keyed element within the query cache.
   void setCache(const std::string& index,
                 const std::string& key,
-                std::string _item) {
+                RowData _item) {
     table_->cache[index][key] = std::move(_item);
   }
 
