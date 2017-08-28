@@ -390,8 +390,10 @@ std::set<fs::path> getHomeDirectories() {
 
   auto users = SQL::selectAllFrom("users");
   for (const auto& user : users) {
-    if (user.at("directory").size() > 0) {
-      results.insert(user.at("directory"));
+    // TODO: Don't assume this is an std::string
+    auto dir = boost::get<std::string>(user.at("directory"));
+    if (dir.size() > 0) {
+      results.insert(dir);
     }
   }
 
