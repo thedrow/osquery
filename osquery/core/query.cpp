@@ -146,9 +146,43 @@ struct RowToPtreeVisitor : boost::static_visitor<> {
 
   RowToPtreeVisitor(pt::ptree& _tree, const std::string& _key) : tree(_tree), key(_key) {}
   template <typename T>
-  void operator()(const T& value) {
+  void operator()(const T& value) const {
     tree.put<T>(key, value);
   }
+};
+
+struct RowToRJVisitor : boost::static_visitor<> {
+  rj::Document& d;
+  const std::string& key;
+
+  RowToRJVisitor(rj::Document& _d, const std::string& _key) : d(_d), key(_key) {}
+  template <typename T>
+  void operator()(const T& value) const {
+    d.AddMember(rj::Value(key.c_str(), d.GetAllocator()).Move(),
+                rj::Value(value).Move(),
+                d.GetAllocator());
+  }
+};
+
+template <>
+void RowToRJVisitor::operator()<const char *>(const char *const& value) const {
+  d.AddMember(rj::Value(key.c_str(), d.GetAllocator()).Move(),
+              rj::Value(value, d.GetAllocator()).Move(),
+              d.GetAllocator());
+}
+
+template <>
+void RowToRJVisitor::operator()<std::string>(const std::string& value) const {
+  d.AddMember(rj::Value(key.c_str(), d.GetAllocator()).Move(),
+              rj::Value(value.c_str(), d.GetAllocator()).Move(),
+              d.GetAllocator());
+}
+
+template <>
+void RowToRJVisitor::operator()<boost::string_view>(const boost::string_view& value) const {
+  d.AddMember(rj::Value(key.c_str(), d.GetAllocator()).Move(),
+              rj::Value(value.data(), d.GetAllocator()).Move(),
+              d.GetAllocator());
 }
 
 Status serializeRow(const Row& r, pt::ptree& tree) {
@@ -165,9 +199,7 @@ Status serializeRow(const Row& r, pt::ptree& tree) {
 Status serializeRowRJ(const Row& r, rj::Document& d) {
   try {
     for (auto& i : r) {
-      d.AddMember(rj::Value(i.first.c_str(), d.GetAllocator()).Move(),
-                  rj::Value(i.second.c_str(), d.GetAllocator()).Move(),
-                  d.GetAllocator());
+      boost::apply_visitor(RowToRJVisitor(d, i.first), i.second);
     }
   } catch (const std::exception& e) {
     return Status(1, e.what());
@@ -178,7 +210,7 @@ Status serializeRowRJ(const Row& r, rj::Document& d) {
 Status serializeRow(const Row& r, const ColumnNames& cols, pt::ptree& tree) {
   try {
     for (auto& c : cols) {
-      tree.add<std::string>(c, r.at(c));
+      boost::apply_visitor(RowToPtreeVisitor(tree, c), r.at(c));
     }
   } catch (const std::exception& e) {
     return Status(1, e.what());
@@ -189,9 +221,7 @@ Status serializeRow(const Row& r, const ColumnNames& cols, pt::ptree& tree) {
 Status serializeRowRJ(const Row& r, const ColumnNames& cols, rj::Document& d) {
   try {
     for (auto& c : cols) {
-      d.AddMember(rj::Value(c.c_str(), d.GetAllocator()).Move(),
-                  rj::Value(r.at(c).c_str(), d.GetAllocator()).Move(),
-                  d.GetAllocator());
+      boost::apply_visitor(RowToRJVisitor(d, c), r.at(c));
     }
   } catch (const std::exception& e) {
     return Status(1, e.what());

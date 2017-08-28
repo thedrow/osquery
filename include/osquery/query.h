@@ -10,6 +10,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <map>
 #include <string>
 #include <vector>
@@ -32,7 +33,7 @@ namespace osquery {
  */
 // TODO: Remove const char * from the list of allowed types once we drop support for everything other than C+17.
 // C++17 provides string_view literals e.g. sv"foo".
-using RowData = boost::variant<std::string, boost::string_view, const char *, long long, unsigned long long, int, double>;
+using RowData = boost::variant<std::string, boost::string_view, const char *, int64_t, uint64_t, int, double>;
 
 /**
  * @brief A single row from a database query
