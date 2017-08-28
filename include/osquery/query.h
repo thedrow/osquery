@@ -228,6 +228,15 @@ Row serializedRowToRow(const SerializedRow &serialized_row) {
   return row;
 }
 
+QueryData serializedQueryDataToQueryData(const SerializedQueryData& serialized_results) {
+  QueryData results;
+  for (const auto& row : serialized_results) {
+    serializedRowToRow(row);
+  }
+
+  return results;
+}
+
 SerializedQueryData queryDataToSerializedQueryData(const QueryData& results) {
   SerializedQueryData serialized_results;
   for (const auto& row : results) {

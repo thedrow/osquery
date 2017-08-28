@@ -103,7 +103,8 @@ void SQL::escapeResults() {
 QueryData SQL::selectAllFrom(const std::string& table) {
   PluginResponse response;
   Registry::call("table", table, {{"action", "generate"}}, response);
-  return response;
+  // TODO: Get rid of the string representation of PluginResponse
+  return serializedQueryDataToQueryData(response);
 }
 
 QueryData SQL::selectAllFrom(const std::string& table,
@@ -120,7 +121,8 @@ QueryData SQL::selectAllFrom(const std::string& table,
 
   PluginResponse response;
   Registry::call("table", table, request, response);
-  return response;
+  // TODO: Get rid of the string representation of PluginResponse
+  return serializedQueryDataToQueryData(response);
 }
 
 Status SQLPlugin::call(const PluginRequest& request, PluginResponse& response) {
@@ -130,7 +132,9 @@ Status SQLPlugin::call(const PluginRequest& request, PluginResponse& response) {
   }
 
   if (request.at("action") == "query") {
-    return this->query(request.at("query"), response);
+    // TODO: Get rid of the string representation of PluginResponse
+    auto r = serializedQueryDataToQueryData(response);
+    return this->query(request.at("query"), r);
   } else if (request.at("action") == "columns") {
     TableColumns columns;
     auto status = this->getQueryColumns(request.at("query"), columns);
@@ -162,8 +166,10 @@ Status SQLPlugin::call(const PluginRequest& request, PluginResponse& response) {
 }
 
 Status query(const std::string& q, QueryData& results) {
+  // TODO: Get rid of string representation of PluginRequest
+  auto r = queryDataToSerializedQueryData(results);
   return Registry::call(
-      "sql", "sql", {{"action", "query"}, {"query", q}}, results);
+      "sql", "sql", {{"action", "query"}, {"query", q}}, r);
 }
 
 Status getQueryColumns(const std::string& q, TableColumns& columns) {
