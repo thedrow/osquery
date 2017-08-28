@@ -387,8 +387,9 @@ bool ownerFromResult(const QueryData& result, long& uid, long& gid) {
     return false;
   }
 
-  if (!safeStrtol(result[0].at("uid"), 10, uid) ||
-      !safeStrtol(result[0].at("gid"), 10, gid)) {
+  // TODO: Don't assume string is present once the tables are refactored.
+  if (!safeStrtol(boost::get<std::string>(result[0].at("uid")), 10, uid) ||
+      !safeStrtol(boost::get<std::string>(result[0].at("gid")), 10, gid)) {
     return false;
   }
   return true;
