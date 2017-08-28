@@ -30,7 +30,9 @@ namespace osquery {
 /**
  * @brief A variant type for the SQLite type affinities.
  */
-using RowData = boost::variant<std::string, boost::string_view, long long, unsigned long long, int, double>;
+// TODO: Remove const char * from the list of allowed types once we drop support for everything other than C+17.
+// C++17 provides string_view literals e.g. sv"foo".
+using RowData = boost::variant<std::string, boost::string_view, const char *, long long, unsigned long long, int, double>;
 
 /**
  * @brief A single row from a database query
@@ -191,6 +193,11 @@ struct RowToSerializedRowVisitor : boost::static_visitor<std::string> {
 
 template <>
 std::string RowToSerializedRowVisitor::operator()<std::string>(const std::string& s) const {
+  return s;
+}
+
+template <>
+std::string RowToSerializedRowVisitor::operator()<const char *>(const char *const& s) const {
   return s;
 }
 
