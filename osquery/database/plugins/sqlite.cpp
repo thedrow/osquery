@@ -208,7 +208,8 @@ static void tryVacuum(sqlite3* db) {
 
   QueryData results;
   sqlite3_exec(db, q.c_str(), getData, &results, nullptr);
-  if (results.size() > 0 && results[0]["v"].back() == '1') {
+  // TODO: Don't assume this is a std::string
+  if (results.size() > 0 && boost::get<std::string>(results[0]["v"]).back() == '1') {
     sqlite3_exec(db, "vacuum;", nullptr, nullptr, nullptr);
   }
 }
@@ -225,7 +226,8 @@ Status SQLiteDatabasePlugin::put(const std::string& domain,
   sqlite3_prepare_v2(db_, q.c_str(), -1, &stmt, nullptr);
 
   sqlite3_bind_text(stmt, 1, key.c_str(), -1, SQLITE_STATIC);
-  sqlite3_bind_text(stmt, 2, value.c_str(), -1, SQLITE_STATIC);
+  // TODO: Don't assume this is a std::string
+  sqlite3_bind_text(stmt, 2, boost::get<std::string>(value).c_str(), -1, SQLITE_STATIC);
   auto rc = sqlite3_step(stmt);
   if (rc != SQLITE_DONE) {
     return Status(1);
@@ -305,7 +307,8 @@ Status SQLiteDatabasePlugin::scan(const std::string& domain,
 
   // Only assign value if the query found a result.
   for (auto& r : _results) {
-    results.push_back(std::move(r["key"]));
+    // TODO: Don't assume this is a std::string
+    results.push_back(std::move(boost::get<std::string>(r["key"])));
   }
 
   return Status(0, "OK");
