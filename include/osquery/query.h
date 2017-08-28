@@ -208,7 +208,7 @@ std::string RowToSerializedRowVisitor::operator()<boost::string_view>(const boos
   return s.data();
 }
 
-// TODO: Rename this
+// TODO: Rename these methods
 // TODO: Move implementation to cpp file
 SerializedRow rowToSerializedRow(const Row &row) {
   SerializedRow serialized_row;
@@ -226,6 +226,15 @@ Row serializedRowToRow(const SerializedRow &serialized_row) {
   }
 
   return row;
+}
+
+SerializedQueryData queryDataToSerializedQueryData(const QueryData& results) {
+  SerializedQueryData serialized_results;
+  for (const auto& row : results) {
+    rowToSerializedRow(row);
+  }
+
+  return serialized_results;
 }
 
 /**

@@ -122,7 +122,7 @@ Status TablePlugin::call(const PluginRequest& request,
     if (request.count("context") > 0) {
       setContextFromRequest(request, context);
     }
-    response = generate(context);
+    response = queryDataToSerializedQueryData(generate(context));
   } else if (request.at("action") == "columns") {
     // The "columns" action returns a PluginRequest filled with column
     // information such as name and type.
