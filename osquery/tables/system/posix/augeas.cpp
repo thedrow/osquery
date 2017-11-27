@@ -41,16 +41,21 @@ namespace tables {
 
 void reportAugeasError(augeas* aug) {
   const char* error_message = aug_error_message(aug);
+  const char* minor_message = aug_error_minor_message(aug);
+  const char* error_details = aug_error_details(aug);
   LOG(ERROR) << "An error has occurred while trying to query augeas: "
-             << error_message;
+             << error_message
+             << "\n"
+             << "Details: "
+             << minor_message
+             << "\n"
+             << error_details;
 }
 
 void matchAugeasPattern(augeas* aug,
                         const std::string& pattern,
                         QueryData& results,
                         QueryContext& context) {
-  // The caller may supply an Augeas PATH/NODE expression or filesystem path.
-  // Below we formulate a Augeas pattern from a path if needed.
   int result = aug_defvar(aug, "matches", pattern.c_str());
   if (result == -1) {
     reportAugeasError(aug);
@@ -170,13 +175,25 @@ QueryData genAugeas(QueryContext& context) {
     std::ostringstream pattern;
 
     for (const auto& path : paths) {
-      pattern << "/files/" << path;
+      bool hasTrailingSlash = path.back() == '/';
+      if (hasTrailingSlash) {
+          pattern << "/files/" << path.substr(0, path.size() - 1);
+      }
+      else {
+          pattern << "/files/" << path;
+      }
       patterns.insert(pattern.str());
 
       pattern.clear();
       pattern.str(std::string());
 
-      pattern << "/files" << path << "//*";
+      pattern << "/files" << path;
+      if (hasTrailingSlash) {
+        pattern << "/*";
+      }
+      else {
+        pattern << "//*";
+      }
       patterns.insert(pattern.str());
 
       pattern.clear();

@@ -30,6 +30,13 @@ TEST_F(AugeasTests, select_hosts_by_path_expression) {
       << "instead";
 }
 
+TEST_F(AugeasTests, select_hosts_by_path_expression_with_trailing_slash) {
+  auto results =
+      SQL("select * from augeas where path = '/etc/hosts/'");
+  ASSERT_TRUE(results.ok());
+  ASSERT_GT(results.rows().size(), 0U);
+}
+
 TEST_F(AugeasTests, select_etc_folder_by_path_expression) {
   auto results = SQL("select * from augeas where path = '/etc' limit 1");
   ASSERT_EQ(results.rows().size(), 1U);
