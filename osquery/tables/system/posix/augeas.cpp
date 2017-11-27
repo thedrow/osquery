@@ -184,6 +184,19 @@ QueryData genAugeas(QueryContext& context) {
     }
   }
 
+  if (context.hasConstraint("label", EQUALS)) {
+    auto labels = context.constraints["label"].getAll(EQUALS);
+    std::ostringstream pattern;
+
+    for (const auto& label : labels) {
+      pattern << "/files//*/" << label;
+      patterns.insert(pattern.str());
+
+      pattern.clear();
+      pattern.str(std::string());
+    }
+  }
+
   if (patterns.empty()) {
     matchAugeasPattern(aug, "/files//*", results, context);
   } else {
