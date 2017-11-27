@@ -164,27 +164,42 @@ QueryData genAugeas(QueryContext& context) {
     patterns.insert(nodes.begin(), nodes.end());
   }
 
+  auto hasLabels = context.hasConstraint("label", EQUALS);
+
   if (context.hasConstraint("path", EQUALS)) {
     // Allow requests via filesystem path.
     auto paths = context.constraints["path"].getAll(EQUALS);
     std::ostringstream pattern;
 
-    for (const auto& path : paths) {
-      pattern << "/files/" << path;
-      patterns.insert(pattern.str());
+    if (hasLabels) {
+      for (const auto& path : paths) {
+        auto labels = context.constraints["label"].getAll(EQUALS);
+        for (const auto& label : labels) {
+          pattern << "/files" << path << "//*/" << label;
+          patterns.insert(pattern.str());
 
-      pattern.clear();
-      pattern.str(std::string());
+          pattern.clear();
+          pattern.str(std::string());
+        }
+      }
+    }
+    else {
+      for (const auto& path : paths) {
+        pattern << "/files" << path;
+        patterns.insert(pattern.str());
 
-      pattern << "/files" << path << "//*";
-      patterns.insert(pattern.str());
+        pattern.clear();
+        pattern.str(std::string());
 
-      pattern.clear();
-      pattern.str(std::string());
+        pattern << "/files" << path << "//*";
+        patterns.insert(pattern.str());
+
+        pattern.clear();
+        pattern.str(std::string());
+      }
     }
   }
-
-  if (context.hasConstraint("label", EQUALS)) {
+  else if (hasLabels) {
     auto labels = context.constraints["label"].getAll(EQUALS);
     std::ostringstream pattern;
 
